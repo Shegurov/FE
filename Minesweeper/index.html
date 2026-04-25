@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сапёр</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a2e;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #eee;
+      user-select: none;
+      padding: 1.5rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: .15em;
+      margin-bottom: 1rem;
+      color: #e94560;
+    }
+
+    /* ── Difficulty ─────────────────────────────────────── */
+    .difficulty {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .diff-btn {
+      padding: .4rem 1rem;
+      border: 2px solid #444;
+      background: #16213e;
+      color: #aaa;
+      border-radius: 4px;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .diff-btn:hover  { border-color: #e94560; color: #fff; }
+    .diff-btn.active { border-color: #e94560; color: #fff; background: #e94560; }
+
+    /* ── Classic panel ──────────────────────────────────── */
+    .panel {
+      background: #c0c0c0;
+      padding: 8px;
+      border: 3px solid;
+      border-color: #fff #808080 #808080 #fff;
+      display: inline-block;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #808080 #fff #fff #808080;
+      padding: 6px 8px;
+      margin-bottom: 8px;
+    }
+
+    /* LED 7-segment style */
+    .led {
+      background: #300;
+      color: #f22;
+      font-family: 'Courier New', monospace;
+      font-size: 1.6rem;
+      font-weight: bold;
+      min-width: 56px;
+      padding: 2px 5px;
+      text-align: right;
+      border: 2px solid;
+      border-color: #808080 #fff #fff #808080;
+      letter-spacing: 3px;
+    }
+
+    /* Smiley restart button */
+    .face-btn {
+      width: 38px;
+      height: 38px;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #fff #808080 #808080 #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .face-btn:active { border-color: #808080 #fff #fff #808080; }
+
+    /* ── Grid ───────────────────────────────────────────── */
+    .grid-wrap {
+      border: 3px solid;
+      border-color: #808080 #fff #fff #808080;
+      display: inline-block;
+      line-height: 0;
+    }
+
+    .grid {
+      display: inline-grid;
+    }
+
+    /* ── Cell ───────────────────────────────────────────── */
+    .cell {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #fff #808080 #808080 #fff;
+    }
+
+    .cell.revealed {
+      border: 1px solid #999;
+      cursor: default;
+      background: #bdbdbd;
+    }
+
+    .cell.mine-hit { background: #f44; }
+
+    /* Number colours — classic Windows palette */
+    .n1 { color: #0000ff; }
+    .n2 { color: #007b00; }
+    .n3 { color: #ff0000; }
+    .n4 { color: #00007b; }
+    .n5 { color: #7b0000; }
+    .n6 { color: #007b7b; }
+    .n7 { color: #000; }
+    .n8 { color: #808080; }
+
+    /* ── Status bar ─────────────────────────────────────── */
+    .status {
+      margin-top: .9rem;
+      font-size: 1rem;
+      min-height: 1.4rem;
+      color: #888;
+    }
+    .status.win  { color: #4caf50; font-weight: bold; }
+    .status.lose { color: #f44336; font-weight: bold; }
+
+    /* ── Hint ───────────────────────────────────────────── */
+    .hint {
+      margin-top: .5rem;
+      font-size: .75rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💣 Сапёр</h1>
+
+  <div class="difficulty">
+    <button class="diff-btn active" data-r="9"  data-c="9"  data-m="10">Лёгкая (9×9)</button>
+    <button class="diff-btn"        data-r="16" data-c="16" data-m="40">Средняя (16×16)</button>
+    <button class="diff-btn"        data-r="16" data-c="30" data-m="99">Сложная (16×30)</button>
+  </div>
+
+  <div class="panel">
+    <div class="header">
+      <div class="led" id="led-mines">010</div>
+      <button class="face-btn" id="face-btn">🙂</button>
+      <div class="led" id="led-timer">000</div>
+    </div>
+    <div class="grid-wrap">
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="hint">ЛКМ — открыть &nbsp;|&nbsp; ПКМ — флаг &nbsp;|&nbsp; 2×ЛКМ — открыть соседей</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const NUM_CLASS = ['','n1','n2','n3','n4','n5','n6','n7','n8'];
+const DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let ROWS, COLS, MINES;
+let board, revealed, flagged;
+let gameOver, firstClick;
+let timerInterval, elapsed;
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const inBounds  = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
+const idx       = (r, c) => r * COLS + c;
+const ledStr    = n => String(Math.max(-99, Math.min(999, n))).padStart(3, '0');
+const $         = id   => document.getElementById(id);
+const cellEl    = (r, c) => $('grid').children[idx(r, c)];
+
+function neighbors(r, c) {
+  return DIRS.map(([dr, dc]) => [r+dr, c+dc]).filter(([nr,nc]) => inBounds(nr, nc));
+}
+
+// ── New game ───────────────────────────────────────────────────────────────
+function newGame(r, c, m) {
+  ROWS = r; COLS = c; MINES = m;
+
+  board    = new Int8Array(ROWS * COLS);        // -1 mine, 0-8 count
+  revealed = new Uint8Array(ROWS * COLS);
+  flagged  = new Uint8Array(ROWS * COLS);
+
+  gameOver   = false;
+  firstClick = true;
+  elapsed    = 0;
+
+  clearInterval(timerInterval);
+  $('led-mines').textContent = ledStr(MINES);
+  $('led-timer').textContent = '000';
+  $('face-btn').textContent  = '🙂';
+  $('status').textContent    = '';
+  $('status').className      = 'status';
+
+  buildGrid();
+}
+
+// ── Mine placement (after first click) ────────────────────────────────────
+function placeMines(safeR, safeC) {
+  const safe = new Set(
+    [safeR, safeC, ...neighbors(safeR, safeC).flat()].reduce((acc, _, i, arr) => {
+      if (i % 2 === 0) acc.push(arr[i] * COLS + arr[i+1]);
+      return acc;
+    }, [idx(safeR, safeC)])
+  );
+
+  // Simpler: collect safe indices
+  const safeSet = new Set([idx(safeR, safeC)]);
+  neighbors(safeR, safeC).forEach(([nr, nc]) => safeSet.add(idx(nr, nc)));
+
+  const pool = [];
+  for (let i = 0; i < ROWS * COLS; i++) if (!safeSet.has(i)) pool.push(i);
+
+  // Fisher-Yates, take first MINES
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  for (let i = 0; i < Math.min(MINES, pool.length); i++) board[pool[i]] = -1;
+
+  // Fill numbers
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      if (board[idx(r,c)] === -1) continue;
+      board[idx(r,c)] = neighbors(r, c).filter(([nr,nc]) => board[idx(nr,nc)] === -1).length;
+    }
+}
+
+// ── Reveal (iterative BFS flood-fill) ─────────────────────────────────────
+function reveal(r, c) {
+  if (gameOver || revealed[idx(r,c)] || flagged[idx(r,c)]) return;
+
+  if (firstClick) {
+    firstClick = false;
+    placeMines(r, c);
+    timerInterval = setInterval(() => {
+      elapsed = Math.min(999, elapsed + 1);
+      $('led-timer').textContent = ledStr(elapsed);
+    }, 1000);
+  }
+
+  const queue = [[r, c]];
+  while (queue.length) {
+    const [cr, cc] = queue.pop();
+    if (!inBounds(cr, cc) || revealed[idx(cr,cc)] || flagged[idx(cr,cc)]) continue;
+
+    revealed[idx(cr,cc)] = 1;
+
+    if (board[idx(cr,cc)] === -1) {
+      // Hit a mine
+      gameOver = true;
+      clearInterval(timerInterval);
+      $('face-btn').textContent = '😵';
+      // Reveal all unflagged mines
+      for (let i = 0; i < ROWS * COLS; i++)
+        if (board[i] === -1 && !flagged[i]) revealed[i] = 1;
+      renderAll();
+      cellEl(cr, cc).classList.add('mine-hit');
+      const st = $('status');
+      st.textContent = '💥 Вы подорвались на мине!';
+      st.className = 'status lose';
+      return;
+    }
+
+    if (board[idx(cr,cc)] === 0)
+      neighbors(cr, cc).forEach(([nr,nc]) => {
+        if (!revealed[idx(nr,nc)]) queue.push([nr, nc]);
+      });
+  }
+
+  checkWin();
+  renderAll();
+}
+
+// ── Chord: double-click on a number ───────────────────────────────────────
+function chord(r, c) {
+  if (!revealed[idx(r,c)] || board[idx(r,c)] <= 0) return;
+  const nb = neighbors(r, c);
+  const flags = nb.filter(([nr,nc]) => flagged[idx(nr,nc)]).length;
+  if (flags === board[idx(r,c)])
+    nb.forEach(([nr,nc]) => reveal(nr, nc));
+}
+
+// ── Flag toggle ────────────────────────────────────────────────────────────
+function toggleFlag(r, c) {
+  if (gameOver || revealed[idx(r,c)]) return;
+  flagged[idx(r,c)] ^= 1;
+  const remaining = MINES - Array.from(flagged).filter(Boolean).length;
+  $('led-mines').textContent = ledStr(remaining);
+  renderCell(r, c);
+}
+
+// ── Win check ──────────────────────────────────────────────────────────────
+function checkWin() {
+  for (let i = 0; i < ROWS * COLS; i++)
+    if (board[i] !== -1 && !revealed[i]) return;
+  gameOver = true;
+  clearInterval(timerInterval);
+  $('face-btn').textContent = '😎';
+  const st = $('status');
+  st.textContent = '🎉 Все мины найдены — победа!';
+  st.className = 'status win';
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function buildGrid() {
+  const grid = $('grid');
+  grid.style.gridTemplateColumns = `repeat(${COLS}, 28px)`;
+  grid.innerHTML = '';
+
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+
+      cell.addEventListener('click',       e => { e.preventDefault(); reveal(r, c); });
+      cell.addEventListener('contextmenu', e => { e.preventDefault(); toggleFlag(r, c); });
+      cell.addEventListener('dblclick',    e => { e.preventDefault(); chord(r, c); });
+
+      grid.appendChild(cell);
+    }
+}
+
+function renderCell(r, c) {
+  const el  = cellEl(r, c);
+  const i   = idx(r, c);
+  el.className   = 'cell';
+  el.textContent = '';
+
+  if (!revealed[i]) {
+    if (flagged[i]) el.textContent = '🚩';
+    return;
+  }
+
+  el.classList.add('revealed');
+  const v = board[i];
+  if (v === -1) {
+    el.textContent = '💣';
+  } else if (v > 0) {
+    el.classList.add(NUM_CLASS[v]);
+    el.textContent = v;
+  }
+}
+
+function renderAll() {
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      renderCell(r, c);
+}
+
+// ── Wiring ─────────────────────────────────────────────────────────────────
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    newGame(+btn.dataset.r, +btn.dataset.c, +btn.dataset.m);
+  });
+});
+
+$('face-btn').addEventListener('click', () => {
+  const a = document.querySelector('.diff-btn.active');
+  newGame(+a.dataset.r, +a.dataset.c, +a.dataset.m);
+});
+
+// Kick off
+newGame(9, 9, 10);
+</script>
+</body>
+</html>
