@@ -18,38 +18,60 @@
       color: #eee;
       user-select: none;
       padding: 1.5rem;
+      gap: .75rem;
     }
 
-    h1 {
-      font-size: 2rem;
-      letter-spacing: .15em;
-      margin-bottom: 1rem;
-      color: #e94560;
-    }
+    h1 { font-size: 2rem; letter-spacing: .15em; color: #e94560; }
 
-    /* ── Difficulty ─────────────────────────────────────── */
+    /* ── Controls ─────────────────────────────────────────────── */
     .difficulty {
       display: flex;
-      gap: .5rem;
-      margin-bottom: 1.2rem;
+      gap: .4rem;
       flex-wrap: wrap;
       justify-content: center;
     }
-
     .diff-btn {
-      padding: .4rem 1rem;
+      padding: .35rem .9rem;
       border: 2px solid #444;
       background: #16213e;
       color: #aaa;
       border-radius: 4px;
-      font-size: .85rem;
+      font-size: .82rem;
       cursor: pointer;
       transition: all .15s;
     }
     .diff-btn:hover  { border-color: #e94560; color: #fff; }
     .diff-btn.active { border-color: #e94560; color: #fff; background: #e94560; }
 
-    /* ── Classic panel ──────────────────────────────────── */
+    .options {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      font-size: .82rem;
+      color: #777;
+    }
+    .opt-label {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      cursor: pointer;
+      transition: color .15s;
+    }
+    .opt-label:hover { color: #ccc; }
+    .opt-label input { cursor: pointer; accent-color: #e94560; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 1.15rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      transition: transform .15s;
+    }
+    .icon-btn:hover { transform: scale(1.2); }
+
+    /* ── Classic panel ────────────────────────────────────────── */
     .panel {
       background: #c0c0c0;
       padding: 8px;
@@ -57,8 +79,6 @@
       border-color: #fff #808080 #808080 #fff;
       display: inline-block;
     }
-
-    /* ── Header ─────────────────────────────────────────── */
     .header {
       display: flex;
       align-items: center;
@@ -69,8 +89,6 @@
       padding: 6px 8px;
       margin-bottom: 8px;
     }
-
-    /* LED 7-segment style */
     .led {
       background: #300;
       color: #f22;
@@ -84,178 +102,269 @@
       border-color: #808080 #fff #fff #808080;
       letter-spacing: 3px;
     }
-
-    /* Smiley restart button */
     .face-btn {
-      width: 38px;
-      height: 38px;
+      width: 38px; height: 38px;
       font-size: 1.4rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       background: #c0c0c0;
       border: 2px solid;
       border-color: #fff #808080 #808080 #fff;
-      cursor: pointer;
-      flex-shrink: 0;
+      cursor: pointer; flex-shrink: 0;
     }
     .face-btn:active { border-color: #808080 #fff #fff #808080; }
 
-    /* ── Grid ───────────────────────────────────────────── */
+    /* ── Grid ─────────────────────────────────────────────────── */
     .grid-wrap {
       border: 3px solid;
       border-color: #808080 #fff #fff #808080;
       display: inline-block;
       line-height: 0;
     }
+    .grid { display: inline-grid; }
 
-    .grid {
-      display: inline-grid;
-    }
-
-    /* ── Cell ───────────────────────────────────────────── */
     .cell {
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .85rem;
-      font-weight: bold;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem; font-weight: bold;
       cursor: pointer;
       background: #c0c0c0;
       border: 2px solid;
       border-color: #fff #808080 #808080 #fff;
+      position: relative;
     }
-
     .cell.revealed {
       border: 1px solid #999;
-      cursor: default;
       background: #bdbdbd;
+      cursor: default;
+    }
+    .cell.mine-hit { background: #f44 !important; }
+
+    .n1 { color: #0000ff; } .n2 { color: #007b00; }
+    .n3 { color: #ff0000; } .n4 { color: #00007b; }
+    .n5 { color: #7b0000; } .n6 { color: #007b7b; }
+    .n7 { color: #000;    } .n8 { color: #808080; }
+
+    /* ── Animations ───────────────────────────────────────────── */
+
+    /* Cell reveal — pop in */
+    @keyframes cellPop {
+      0%   { transform: scale(.5);    opacity: .15; }
+      65%  { transform: scale(1.1);                 }
+      100% { transform: scale(1);     opacity: 1;   }
+    }
+    .cell.anim-pop { animation: cellPop .2s ease-out both; }
+
+    /* Flag place / remove */
+    @keyframes flagIn {
+      0%   { transform: scale(.3) rotate(-25deg); opacity: 0; }
+      65%  { transform: scale(1.3) rotate(8deg);              }
+      100% { transform: scale(1)   rotate(0deg);  opacity: 1; }
+    }
+    @keyframes flagOut {
+      0%   { transform: scale(1);   opacity: 1; }
+      100% { transform: scale(0) rotate(20deg); opacity: 0; }
+    }
+    .cell.anim-flag-in  { animation: flagIn  .22s ease-out both; }
+    .cell.anim-flag-out { animation: flagOut .15s ease-in  both; }
+
+    /* Panel shake on explosion */
+    @keyframes panelShake {
+      0%,100% { transform: translate(0,0) rotate(0deg);      }
+      10%     { transform: translate(-6px, 3px) rotate(-1deg); }
+      25%     { transform: translate(6px, -4px) rotate(1deg);  }
+      40%     { transform: translate(-5px,-3px) rotate(-1deg); }
+      55%     { transform: translate(5px,  5px) rotate(.5deg); }
+      70%     { transform: translate(-3px, 2px) rotate(-.5deg);}
+      85%     { transform: translate(3px, -2px) rotate(.3deg); }
+    }
+    .panel.anim-shake { animation: panelShake .55s ease; }
+
+    /* Win glow on revealed cells */
+    @keyframes winGlow {
+      0%,100% { background: #bdbdbd; }
+      50%     { background: #81c784; }
+    }
+    .cell.revealed.anim-win {
+      animation: winGlow .7s ease var(--wd,0ms) both;
     }
 
-    .cell.mine-hit { background: #f44; }
-
-    /* Number colours — classic Windows palette */
-    .n1 { color: #0000ff; }
-    .n2 { color: #007b00; }
-    .n3 { color: #ff0000; }
-    .n4 { color: #00007b; }
-    .n5 { color: #7b0000; }
-    .n6 { color: #007b7b; }
-    .n7 { color: #000; }
-    .n8 { color: #808080; }
-
-    /* ── Status bar ─────────────────────────────────────── */
-    .status {
-      margin-top: .9rem;
-      font-size: 1rem;
-      min-height: 1.4rem;
-      color: #888;
+    /* ── Toast ─────────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      background: #2a2a3e;
+      color: #ddd;
+      border: 1px solid #444;
+      padding: .5rem 1.2rem;
+      border-radius: 6px;
+      font-size: .82rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+      white-space: nowrap;
     }
+    .toast.show { opacity: 1; }
+
+    /* ── Status ────────────────────────────────────────────────── */
+    .status { font-size: .95rem; min-height: 1.4rem; color: #666; }
     .status.win  { color: #4caf50; font-weight: bold; }
     .status.lose { color: #f44336; font-weight: bold; }
-
-    /* ── Hint ───────────────────────────────────────────── */
-    .hint {
-      margin-top: .5rem;
-      font-size: .75rem;
-      color: #555;
-    }
+    .hint { font-size: .72rem; color: #444; }
   </style>
 </head>
 <body>
 
-  <h1>💣 Сапёр</h1>
+<h1>💣 Сапёр</h1>
 
-  <div class="difficulty">
-    <button class="diff-btn active" data-r="9"  data-c="9"  data-m="10">Лёгкая (9×9)</button>
-    <button class="diff-btn"        data-r="16" data-c="16" data-m="40">Средняя (16×16)</button>
-    <button class="diff-btn"        data-r="16" data-c="30" data-m="99">Сложная (16×30)</button>
+<div class="difficulty">
+  <button class="diff-btn active" data-r="9"  data-c="9"  data-m="10">Лёгкая (9×9)</button>
+  <button class="diff-btn"        data-r="16" data-c="16" data-m="40">Средняя (16×16)</button>
+  <button class="diff-btn"        data-r="16" data-c="30" data-m="99">Сложная (16×30)</button>
+</div>
+
+<div class="options">
+  <button class="icon-btn" id="sound-btn" title="Звук вкл/выкл">🔊</button>
+  <label class="opt-label" title="Поле гарантированно решается без угадывания">
+    <input type="checkbox" id="no-guess-chk"> Без угадывания
+  </label>
+</div>
+
+<div class="panel" id="panel">
+  <div class="header">
+    <div class="led" id="led-mines">010</div>
+    <button class="face-btn" id="face-btn">🙂</button>
+    <div class="led" id="led-timer">000</div>
   </div>
-
-  <div class="panel">
-    <div class="header">
-      <div class="led" id="led-mines">010</div>
-      <button class="face-btn" id="face-btn">🙂</button>
-      <div class="led" id="led-timer">000</div>
-    </div>
-    <div class="grid-wrap">
-      <div class="grid" id="grid"></div>
-    </div>
+  <div class="grid-wrap">
+    <div class="grid" id="grid"></div>
   </div>
+</div>
 
-  <div class="status" id="status"></div>
-  <div class="hint">ЛКМ — открыть &nbsp;|&nbsp; ПКМ — флаг &nbsp;|&nbsp; 2×ЛКМ — открыть соседей</div>
+<div class="status" id="status"></div>
+<div class="hint">ЛКМ — открыть &nbsp;·&nbsp; ПКМ — флаг &nbsp;·&nbsp; 2×ЛКМ — открыть соседей</div>
+<div class="toast" id="toast"></div>
 
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────
 const NUM_CLASS = ['','n1','n2','n3','n4','n5','n6','n7','n8'];
 const DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+const WAVE_MS = 20; // animation delay per BFS level (ms)
 
 // ── State ──────────────────────────────────────────────────────────────────
 let ROWS, COLS, MINES;
 let board, revealed, flagged;
 let gameOver, firstClick;
 let timerInterval, elapsed;
+let soundEnabled = true;
+let noGuessMode  = false;
+
+// ── Audio (Web Audio API) ──────────────────────────────────────────────────
+let _ac = null;
+function ac() {
+  if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ac.state === 'suspended') _ac.resume();
+  return _ac;
+}
+
+// Short tick during wave reveal — pitch drops with BFS level
+function sndTick(level) {
+  if (!soundEnabled) return;
+  const ctx = ac(), t = ctx.currentTime + level * WAVE_MS / 1000;
+  const osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.connect(g); g.connect(ctx.destination);
+  osc.type = 'square';
+  const f = Math.max(300, 1500 - level * 70);
+  osc.frequency.setValueAtTime(f, t);
+  osc.frequency.exponentialRampToValueAtTime(f * .55, t + .055);
+  g.gain.setValueAtTime(.035, t);
+  g.gain.exponentialRampToValueAtTime(.001, t + .07);
+  osc.start(t); osc.stop(t + .07);
+}
+
+function sndFlag(placing) {
+  if (!soundEnabled) return;
+  const ctx = ac(), osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.connect(g); g.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.value = placing ? 1100 : 700;
+  g.gain.setValueAtTime(.18, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .12);
+  osc.start(); osc.stop(ctx.currentTime + .12);
+}
+
+function sndExplosion() {
+  if (!soundEnabled) return;
+  const ctx = ac();
+  // Low-frequency noise burst
+  const len  = Math.ceil(ctx.sampleRate * .9);
+  const buf  = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++)
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * .12));
+
+  const src  = ctx.createBufferSource(); src.buffer = buf;
+  const filt = ctx.createBiquadFilter();
+  filt.type = 'lowpass';
+  filt.frequency.setValueAtTime(700, ctx.currentTime);
+  filt.frequency.exponentialRampToValueAtTime(55, ctx.currentTime + .9);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(1.8, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .9);
+  src.connect(filt); filt.connect(g); g.connect(ctx.destination);
+  src.start(); src.stop(ctx.currentTime + .9);
+}
+
+function sndWin() {
+  if (!soundEnabled) return;
+  const ctx = ac();
+  [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+    const t = ctx.currentTime + i * .13;
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = freq;
+    g.gain.setValueAtTime(.28, t);
+    g.gain.exponentialRampToValueAtTime(.001, t + .55);
+    osc.start(t); osc.stop(t + .55);
+  });
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-const inBounds  = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
-const idx       = (r, c) => r * COLS + c;
-const ledStr    = n => String(Math.max(-99, Math.min(999, n))).padStart(3, '0');
-const $         = id   => document.getElementById(id);
-const cellEl    = (r, c) => $('grid').children[idx(r, c)];
+const inBounds = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
+const idx      = (r, c) => r * COLS + c;
+const ledStr   = n      => String(Math.max(-99, Math.min(999, n))).padStart(3, '0');
+const $        = id     => document.getElementById(id);
+const cellEl   = (r, c) => $('grid').children[idx(r, c)];
 
 function neighbors(r, c) {
-  return DIRS.map(([dr, dc]) => [r+dr, c+dc]).filter(([nr,nc]) => inBounds(nr, nc));
+  return DIRS.map(([dr,dc]) => [r+dr, c+dc]).filter(([nr,nc]) => inBounds(nr,nc));
 }
 
-// ── New game ───────────────────────────────────────────────────────────────
-function newGame(r, c, m) {
-  ROWS = r; COLS = c; MINES = m;
-
-  board    = new Int8Array(ROWS * COLS);        // -1 mine, 0-8 count
-  revealed = new Uint8Array(ROWS * COLS);
-  flagged  = new Uint8Array(ROWS * COLS);
-
-  gameOver   = false;
-  firstClick = true;
-  elapsed    = 0;
-
-  clearInterval(timerInterval);
-  $('led-mines').textContent = ledStr(MINES);
-  $('led-timer').textContent = '000';
-  $('face-btn').textContent  = '🙂';
-  $('status').textContent    = '';
-  $('status').className      = 'status';
-
-  buildGrid();
+let _toastTimer = null;
+function toast(msg, ms = 3000) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
-// ── Mine placement (after first click) ────────────────────────────────────
-function placeMines(safeR, safeC) {
-  const safe = new Set(
-    [safeR, safeC, ...neighbors(safeR, safeC).flat()].reduce((acc, _, i, arr) => {
-      if (i % 2 === 0) acc.push(arr[i] * COLS + arr[i+1]);
-      return acc;
-    }, [idx(safeR, safeC)])
-  );
-
-  // Simpler: collect safe indices
-  const safeSet = new Set([idx(safeR, safeC)]);
-  neighbors(safeR, safeC).forEach(([nr, nc]) => safeSet.add(idx(nr, nc)));
+// ── Mine placement ─────────────────────────────────────────────────────────
+function placeMinesRaw(safeR, safeC) {
+  board.fill(0);
+  const safe = new Set([idx(safeR, safeC)]);
+  neighbors(safeR, safeC).forEach(([nr,nc]) => safe.add(idx(nr,nc)));
 
   const pool = [];
-  for (let i = 0; i < ROWS * COLS; i++) if (!safeSet.has(i)) pool.push(i);
-
-  // Fisher-Yates, take first MINES
+  for (let i = 0; i < ROWS * COLS; i++) if (!safe.has(i)) pool.push(i);
+  // Fisher-Yates shuffle, take first MINES
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
   for (let i = 0; i < Math.min(MINES, pool.length); i++) board[pool[i]] = -1;
 
-  // Fill numbers
+  // Fill neighbour counts
   for (let r = 0; r < ROWS; r++)
     for (let c = 0; c < COLS; c++) {
       if (board[idx(r,c)] === -1) continue;
@@ -263,80 +372,232 @@ function placeMines(safeR, safeC) {
     }
 }
 
-// ── Reveal (iterative BFS flood-fill) ─────────────────────────────────────
+// ── Constraint solver for no-guess mode ───────────────────────────────────
+// Returns true if testBoard is fully solvable from (startR,startC) without guessing.
+// Uses: (1) basic deduction, (2) subset/difference deduction.
+function canSolve(testBoard, startR, startC) {
+  const rev  = new Uint8Array(ROWS * COLS);
+  const flag = new Uint8Array(ROWS * COLS);
+
+  function flood(r, c) {
+    const q = [[r, c]];
+    while (q.length) {
+      const [cr, cc] = q.shift();
+      if (!inBounds(cr, cc)) continue;
+      const i = idx(cr, cc);
+      if (rev[i] || flag[i]) continue;
+      rev[i] = 1;
+      if (testBoard[i] === 0)
+        DIRS.forEach(([dr,dc]) => q.push([cr+dr, cc+dc]));
+    }
+  }
+
+  flood(startR, startC);
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const constraints = []; // {cells: Set<idx>, mines: number}
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const i = idx(r, c);
+        if (!rev[i] || testBoard[i] <= 0) continue;
+
+        const cells = [];
+        let flagCount = 0;
+        DIRS.forEach(([dr,dc]) => {
+          const nr = r+dr, nc = c+dc;
+          if (!inBounds(nr, nc)) return;
+          const ni = idx(nr, nc);
+          if (flag[ni]) flagCount++;
+          else if (!rev[ni]) cells.push(ni);
+        });
+
+        const mines = testBoard[i] - flagCount;
+
+        if (mines === 0 && cells.length) {
+          cells.forEach(ni => { if (!rev[ni]) { flood(~~(ni/COLS), ni%COLS); changed = true; } });
+        } else if (mines > 0 && mines === cells.length) {
+          cells.forEach(ni => { if (!flag[ni]) { flag[ni] = 1; changed = true; } });
+        } else if (mines > 0 && cells.length > mines) {
+          constraints.push({ cells: new Set(cells), mines });
+        }
+      }
+    }
+
+    // Subset/difference deduction: if A ⊆ B → (B\A) has (B.mines − A.mines) mines
+    if (!changed) {
+      outer: for (let a = 0; a < constraints.length; a++) {
+        for (let b = 0; b < constraints.length; b++) {
+          if (a === b) continue;
+          const ca = constraints[a], cb = constraints[b];
+          if (ca.cells.size >= cb.cells.size) continue;
+          let subset = true;
+          for (const ci of ca.cells) if (!cb.cells.has(ci)) { subset = false; break; }
+          if (!subset) continue;
+
+          const diff      = [...cb.cells].filter(ci => !ca.cells.has(ci));
+          const diffMines = cb.mines - ca.mines;
+          if (diffMines < 0 || diffMines > diff.length) continue;
+
+          if (diffMines === 0) {
+            diff.forEach(ni => { if (!rev[ni]) { flood(~~(ni/COLS), ni%COLS); changed = true; } });
+          } else if (diffMines === diff.length) {
+            diff.forEach(ni => { if (!flag[ni]) { flag[ni] = 1; changed = true; } });
+          }
+          if (changed) break outer;
+        }
+      }
+    }
+  }
+
+  for (let i = 0; i < ROWS * COLS; i++)
+    if (testBoard[i] !== -1 && !rev[i]) return false;
+  return true;
+}
+
+function placeMinesNoGuess(safeR, safeC) {
+  const deadline = performance.now() + 3000;
+  while (performance.now() < deadline) {
+    placeMinesRaw(safeR, safeC);
+    if (canSolve(board, safeR, safeC)) return true;
+  }
+  return false;
+}
+
+// ── New game ───────────────────────────────────────────────────────────────
+function newGame(r, c, m) {
+  ROWS = r; COLS = c; MINES = m;
+  board    = new Int8Array(ROWS * COLS);
+  revealed = new Uint8Array(ROWS * COLS);
+  flagged  = new Uint8Array(ROWS * COLS);
+  gameOver = false; firstClick = true; elapsed = 0;
+  clearInterval(timerInterval);
+  $('led-mines').textContent = ledStr(MINES);
+  $('led-timer').textContent = '000';
+  $('face-btn').textContent  = '🙂';
+  $('status').textContent    = '';
+  $('status').className      = 'status';
+  buildGrid();
+}
+
+// ── Reveal ─────────────────────────────────────────────────────────────────
 function reveal(r, c) {
   if (gameOver || revealed[idx(r,c)] || flagged[idx(r,c)]) return;
 
   if (firstClick) {
     firstClick = false;
-    placeMines(r, c);
+    if (noGuessMode) {
+      const ok = placeMinesNoGuess(r, c);
+      if (!ok) { placeMinesRaw(r, c); toast('Не удалось найти поле без угадывания — обычный режим'); }
+    } else {
+      placeMinesRaw(r, c);
+    }
     timerInterval = setInterval(() => {
       elapsed = Math.min(999, elapsed + 1);
       $('led-timer').textContent = ledStr(elapsed);
     }, 1000);
   }
 
-  const queue = [[r, c]];
+  // BFS with level tracking
+  const queue    = [[r, c, 0]];
+  const visited  = new Set();
+  const toReveal = []; // {r, c, lvl}
+  let hitMine    = null;
+
   while (queue.length) {
-    const [cr, cc] = queue.pop();
-    if (!inBounds(cr, cc) || revealed[idx(cr,cc)] || flagged[idx(cr,cc)]) continue;
-
-    revealed[idx(cr,cc)] = 1;
-
-    if (board[idx(cr,cc)] === -1) {
-      // Hit a mine
-      gameOver = true;
-      clearInterval(timerInterval);
-      $('face-btn').textContent = '😵';
-      // Reveal all unflagged mines
-      for (let i = 0; i < ROWS * COLS; i++)
-        if (board[i] === -1 && !flagged[i]) revealed[i] = 1;
-      renderAll();
-      cellEl(cr, cc).classList.add('mine-hit');
-      const st = $('status');
-      st.textContent = '💥 Вы подорвались на мине!';
-      st.className = 'status lose';
-      return;
-    }
-
-    if (board[idx(cr,cc)] === 0)
-      neighbors(cr, cc).forEach(([nr,nc]) => {
-        if (!revealed[idx(nr,nc)]) queue.push([nr, nc]);
-      });
+    const [cr, cc, lvl] = queue.shift();
+    const i = idx(cr, cc);
+    if (!inBounds(cr, cc) || revealed[i] || flagged[i] || visited.has(i)) continue;
+    visited.add(i);
+    revealed[i] = 1;
+    toReveal.push({ r: cr, c: cc, lvl });
+    if (board[i] === -1) { hitMine = { r: cr, c: cc }; break; }
+    if (board[i] === 0)
+      DIRS.forEach(([dr,dc]) => queue.push([cr+dr, cc+dc, lvl+1]));
   }
 
+  if (hitMine) {
+    // Reveal all unflagged mines
+    for (let i = 0; i < ROWS * COLS; i++)
+      if (board[i] === -1 && !flagged[i]) revealed[i] = 1;
+    renderAll();
+    cellEl(hitMine.r, hitMine.c).classList.add('mine-hit');
+    sndExplosion();
+    const panel = $('panel');
+    panel.classList.remove('anim-shake');
+    void panel.offsetWidth;
+    panel.classList.add('anim-shake');
+    gameOver = true; clearInterval(timerInterval);
+    $('face-btn').textContent = '😵';
+    const st = $('status'); st.textContent = '💥 Вы подорвались на мине!'; st.className = 'status lose';
+    return;
+  }
+
+  // Wave animation: one reflow for the whole batch
+  const grid = $('grid');
+  toReveal.forEach(({r:cr,c:cc}) => cellEl(cr,cc).classList.remove('anim-pop'));
+  void grid.offsetWidth;
+
+  const levels = new Set();
+  toReveal.forEach(({r:cr, c:cc, lvl}) => {
+    renderCell(cr, cc);
+    const el = cellEl(cr, cc);
+    el.style.animationDelay = `${lvl * WAVE_MS}ms`;
+    el.classList.add('anim-pop');
+    levels.add(lvl);
+  });
+
+  // Play a cascade of ticks, one per BFS level
+  levels.forEach(lvl => sndTick(lvl));
+
   checkWin();
-  renderAll();
 }
 
-// ── Chord: double-click on a number ───────────────────────────────────────
+// ── Flag ───────────────────────────────────────────────────────────────────
+function toggleFlag(r, c) {
+  if (gameOver || revealed[idx(r,c)]) return;
+  const placing = !flagged[idx(r,c)];
+  flagged[idx(r,c)] ^= 1;
+  $('led-mines').textContent = ledStr(MINES - Array.from(flagged).filter(Boolean).length);
+  sndFlag(placing);
+
+  renderCell(r, c);
+  const el = cellEl(r, c);
+  el.classList.remove('anim-flag-in', 'anim-flag-out');
+  void el.offsetWidth;
+  el.classList.add(placing ? 'anim-flag-in' : 'anim-flag-out');
+}
+
+// ── Chord ──────────────────────────────────────────────────────────────────
 function chord(r, c) {
-  if (!revealed[idx(r,c)] || board[idx(r,c)] <= 0) return;
+  if (!revealed[idx(r,c)] || board[idx(r,c)] <= 0 || gameOver) return;
   const nb = neighbors(r, c);
-  const flags = nb.filter(([nr,nc]) => flagged[idx(nr,nc)]).length;
-  if (flags === board[idx(r,c)])
+  if (nb.filter(([nr,nc]) => flagged[idx(nr,nc)]).length === board[idx(r,c)])
     nb.forEach(([nr,nc]) => reveal(nr, nc));
 }
 
-// ── Flag toggle ────────────────────────────────────────────────────────────
-function toggleFlag(r, c) {
-  if (gameOver || revealed[idx(r,c)]) return;
-  flagged[idx(r,c)] ^= 1;
-  const remaining = MINES - Array.from(flagged).filter(Boolean).length;
-  $('led-mines').textContent = ledStr(remaining);
-  renderCell(r, c);
-}
-
-// ── Win check ──────────────────────────────────────────────────────────────
+// ── Win ────────────────────────────────────────────────────────────────────
 function checkWin() {
   for (let i = 0; i < ROWS * COLS; i++)
     if (board[i] !== -1 && !revealed[i]) return;
-  gameOver = true;
-  clearInterval(timerInterval);
+
+  gameOver = true; clearInterval(timerInterval);
   $('face-btn').textContent = '😎';
-  const st = $('status');
-  st.textContent = '🎉 Все мины найдены — победа!';
-  st.className = 'status win';
+  sndWin();
+
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      if (!revealed[idx(r,c)]) continue;
+      const el = cellEl(r, c);
+      el.style.setProperty('--wd', `${(r + c) * 14}ms`);
+      el.classList.remove('anim-win');
+      void el.offsetWidth;
+      el.classList.add('anim-win');
+    }
+
+  const st = $('status'); st.textContent = '🎉 Все мины найдены — победа!'; st.className = 'status win';
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
@@ -344,46 +605,52 @@ function buildGrid() {
   const grid = $('grid');
   grid.style.gridTemplateColumns = `repeat(${COLS}, 28px)`;
   grid.innerHTML = '';
-
   for (let r = 0; r < ROWS; r++)
     for (let c = 0; c < COLS; c++) {
       const cell = document.createElement('div');
-      cell.className = 'cell';
-
-      cell.addEventListener('click',       e => { e.preventDefault(); reveal(r, c); });
+      cell.className   = 'cell';
+      cell.dataset.r   = r;
+      cell.dataset.c   = c;
+      cell.addEventListener('click',       () => reveal(r, c));
       cell.addEventListener('contextmenu', e => { e.preventDefault(); toggleFlag(r, c); });
-      cell.addEventListener('dblclick',    e => { e.preventDefault(); chord(r, c); });
-
+      cell.addEventListener('dblclick',    () => chord(r, c));
       grid.appendChild(cell);
     }
 }
 
 function renderCell(r, c) {
-  const el  = cellEl(r, c);
-  const i   = idx(r, c);
+  const el = cellEl(r, c), i = idx(r, c);
   el.className   = 'cell';
   el.textContent = '';
-
-  if (!revealed[i]) {
-    if (flagged[i]) el.textContent = '🚩';
-    return;
-  }
-
+  if (!revealed[i]) { if (flagged[i]) el.textContent = '🚩'; return; }
   el.classList.add('revealed');
   const v = board[i];
-  if (v === -1) {
-    el.textContent = '💣';
-  } else if (v > 0) {
-    el.classList.add(NUM_CLASS[v]);
-    el.textContent = v;
-  }
+  if      (v === -1) { el.textContent = '💣'; }
+  else if (v  >  0)  { el.classList.add(NUM_CLASS[v]); el.textContent = v; }
 }
 
 function renderAll() {
-  for (let r = 0; r < ROWS; r++)
-    for (let c = 0; c < COLS; c++)
-      renderCell(r, c);
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) renderCell(r, c);
 }
+
+// ── Mobile: long-press for flag ────────────────────────────────────────────
+let _lpTimer = null, _lpFired = false;
+$('grid').addEventListener('touchstart', e => {
+  if (e.touches.length !== 1) return;
+  e.preventDefault();
+  const cell = e.touches[0].target.closest('[data-r]');
+  if (!cell) return;
+  const r = +cell.dataset.r, c = +cell.dataset.c;
+  _lpFired = false;
+  _lpTimer = setTimeout(() => { _lpFired = true; toggleFlag(r, c); }, 420);
+}, { passive: false });
+
+$('grid').addEventListener('touchend', e => {
+  clearTimeout(_lpTimer); _lpTimer = null;
+  if (_lpFired) { _lpFired = false; return; }
+  const cell = e.changedTouches[0].target.closest('[data-r]');
+  if (cell) reveal(+cell.dataset.r, +cell.dataset.c);
+}, { passive: true });
 
 // ── Wiring ─────────────────────────────────────────────────────────────────
 document.querySelectorAll('.diff-btn').forEach(btn => {
@@ -399,7 +666,18 @@ $('face-btn').addEventListener('click', () => {
   newGame(+a.dataset.r, +a.dataset.c, +a.dataset.m);
 });
 
-// Kick off
+$('sound-btn').addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  $('sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
+});
+
+$('no-guess-chk').addEventListener('change', e => {
+  noGuessMode = e.target.checked;
+  const a = document.querySelector('.diff-btn.active');
+  newGame(+a.dataset.r, +a.dataset.c, +a.dataset.m);
+});
+
+// ── Start ──────────────────────────────────────────────────────────────────
 newGame(9, 9, 10);
 </script>
 </body>
