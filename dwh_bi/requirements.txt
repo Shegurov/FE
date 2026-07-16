@@ -1,0 +1,5 @@
+# Local engine — all free / open-source. The BI server and pipeline use only
+# the Python standard library on top of these two.
+duckdb>=1.1
+pyarrow>=15
+# Optional, only for `pipeline.generate.to_parquet` lake demos — covered by pyarrow.
